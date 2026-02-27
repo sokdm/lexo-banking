@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Support - Lexo Banking</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: #f0f2f5; 
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+        }
+        .chat-app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh; /* Dynamic viewport height for mobile */
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .chat-header {
+            background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+            color: white;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+        .back-btn {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.1); }
+        .admin-avatar {
+            width: 42px;
+            height: 42px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a237e;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        .admin-info { flex: 1; min-width: 0; }
+        .admin-info h3 { font-size: 1rem; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .online-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.75rem;
+        }
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            background: #00c853;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 15px;
+            background: #e3f2fd;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            position: relative;
+            animation: slideIn 0.3s ease;
+            word-wrap: break-word;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .message.sent {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 2px 8px rgba(26,35,126,0.3);
+        }
+        .message.received {
+            align-self: flex-start;
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .message-time {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .message.sent .message-time { color: rgba(255,255,255,0.9); }
+        .message.received .message-time { color: #888; }
+        .checkmarks { color: #00c853; font-size: 0.8rem; }
+        .typing-indicator {
+            align-self: flex-start;
+            background: white;
+            padding: 12px 16px;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 5px;
+        }
+        .typing-indicator.show { display: flex; }
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+        .chat-input-area {
+            background: white;
+            padding: 10px 12px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            flex-shrink: 0;
+            min-height: 60px;
+            max-height: 120px;
+        }
+        .input-wrapper {
+            flex: 1;
+            background: #f5f5f5;
+            border-radius: 20px;
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            min-height: 40px;
+            max-height: 100px;
+        }
+        .chat-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 0.95rem;
+            outline: none;
+            width: 100%;
+            resize: none;
+            max-height: 80px;
+            font-family: inherit;
+        }
+        .send-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+        .date-separator {
+            text-align: center;
+            margin: 8px 0;
+            position: relative;
+        }
+        .date-separator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            right: 10%;
+            height: 1px;
+            background: #ccc;
+        }
+        .date-separator span {
+            background: #e3f2fd;
+            padding: 0 12px;
+            color: #666;
+            font-size: 0.75rem;
+            position: relative;
+        }
+        .welcome-msg {
+            text-align: center;
+            padding: 30px 20px;
+            color: #666;
+        }
+        .welcome-msg i {
+            font-size: 3.5rem;
+            color: #1a237e;
+            margin-bottom: 15px;
+            opacity: 0.3;
+        }
+        .welcome-msg h3 {
+            color: #1a237e;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        .welcome-msg p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-app">
+        <div class="chat-header">
+            <a href="/dashboard" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="admin-avatar">
+                <i class="fas fa-headset"></i>
+            </div>
+            <div class="admin-info">
+                <h3>Lexo Support</h3>
+                <div class="online-status">
+                    <div class="online-dot"></div>
+                    <span>Online</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-msg">
+                <i class="fas fa-comments"></i>
+                <h3>Welcome to Live Support</h3>
+                <p>Our team is here to help you 24/7.<br>Send a message to get started!</p>
+            </div>
+        </div>
+        
+        <div class="typing-indicator" id="typingIndicator">
+            <span style="font-size: 0.85rem; color: #666;">Admin is typing</span>
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="chat-input-area">
+            <div class="input-wrapper">
+                <textarea class="chat-input" id="messageInput" placeholder="Type a message..." rows="1"></textarea>
+            </div>
+            <button class="send-btn" onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        let myId = null;
+        const adminId = 'admin';
+        let messages = [];
+        
+        async function init() {
+            const res = await fetch('/api/user');
+            const data = await res.json();
+            if (!data.success) {
+                window.location.href = '/login';
+                return;
+            }
+            myId = data.user.id;
+            socket.emit('join-chat', myId);
+            loadMessages();
+        }
+        
+        function loadMessages() {
+            socket.emit('get-messages', { userId: myId, chatWith: adminId });
+        }
+        
+        socket.on('chat-history', (msgs) => {
+            messages = msgs;
+            renderMessages();
+        });
+        
+        socket.on('new-message', (msg) => {
+            if ((msg.senderId === myId && msg.recipientId === adminId) ||
+                (msg.senderId === adminId && msg.recipientId === myId)) {
+                
+                if (!messages.find(m => m.id === msg.id)) {
+                    messages.push(msg);
+                    renderMessages();
+                    scrollToBottom();
+                    
+                    if (msg.senderId === adminId) {
+                        showTyping();
+                    }
+                }
+            }
+        });
+        
+        function renderMessages() {
+            const container = document.getElementById('chatMessages');
+            
+            if (messages.length === 0) {
+                container.innerHTML = `
+                    <div class="welcome-msg">
+                        <i class="fas fa-comments"></i>
+                        <h3>Welcome to Live Support</h3>
+                        <p>Our team is here to help you 24/7.<br>Send a message to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = '';
+            let lastDate = null;
+            
+            messages.forEach((msg) => {
+                const msgDate = new Date(msg.timestamp).toDateString();
+                
+                if (msgDate !== lastDate) {
+                    const separator = document.createElement('div');
+                    separator.className = 'date-separator';
+                    separator.innerHTML = `<span>${formatDate(msg.timestamp)}</span>`;
+                    container.appendChild(separator);
+                    lastDate = msgDate;
+                }
+                
+                const isMe = msg.senderId === myId;
+                const div = document.createElement('div');
+                div.className = `message ${isMe ? 'sent' : 'received'}`;
+                
+                const time = new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const checkmark = isMe ? '<i class="fas fa-check-double checkmarks"></i>' : '';
+                
+                div.innerHTML = `
+                    ${escapeHtml(msg.message)}
+                    <div class="message-time">
+                        ${time} ${checkmark}
+                    </div>
+                `;
+                
+                container.appendChild(div);
+            });
+            
+            scrollToBottom();
+        }
+        
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            
+            if (date.toDateString() === today.toDateString()) return 'Today';
+            if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+            return date.toLocaleDateString();
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            
+            if (!text || !myId) return;
+            
+            const messageData = {
+                senderId: myId,
+                recipientId: adminId,
+                message: text,
+                senderType: 'user',
+                timestamp: new Date().toISOString()
+            };
+            
+            messageData.id = 'temp-' + Date.now();
+            messages.push(messageData);
+            renderMessages();
+            scrollToBottom();
+            
+            socket.emit('send-message', messageData);
+            
+            input.value = '';
+            input.style.height = 'auto';
+            input.focus();
+        }
+        
+        function showTyping() {
+            const indicator = document.getElementById('typingIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+        
+        function scrollToBottom() {
+            const container = document.getElementById('chatMessages');
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        // Event listeners
+        const msgInput = document.getElementById('messageInput');
+        
+        msgInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // Auto-resize textarea
+        msgInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 80) + 'px';
+        });
+        
+        // Focus input on load
+        window.addEventListener('load', () => {
+            msgInput.focus();
+        });
+        
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Lexo Banking</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        .dashboard { background: #f0f2f5; min-height: 100vh; padding-bottom: 80px; }
+        .header {
+            background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+            color: white;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .greeting h2 { font-size: 1.3rem; margin-bottom: 5px; }
+        .greeting p { opacity: 0.9; font-size: 0.9rem; }
+        .header-actions { display: flex; gap: 15px; }
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            position: relative;
+        }
+        .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff1744;
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .balance-section {
+            margin: -30px 20px 20px;
+            position: relative;
+            z-index: 2;
+        }
+        .balance-card {
+            background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+            border-radius: 20px;
+            padding: 25px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(26,35,126,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .card-label { opacity: 0.8; font-size: 0.9rem; }
+        .hide-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .balance-amount {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        .account-info { font-size: 0.85rem; opacity: 0.9; }
+        .copy-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .action-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #333;
+        }
+        .action-icon {
+            width: 55px;
+            height: 55px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+        .action-icon.send { background: #e3f2fd; color: #1976d2; }
+        .action-icon.receive { background: #e8f5e9; color: #388e3c; }
+        .action-icon.history { background: #fff3e0; color: #f57c00; }
+        .action-icon.support { background: #fce4ec; color: #c2185b; }
+        .action-label { font-size: 0.75rem; font-weight: 500; }
+        .promo-banner {
+            margin: 0 20px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .promo-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .promo-btn {
+            margin-left: auto;
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 20px 15px;
+        }
+        .section-title h3 { color: #333; font-size: 1.1rem; }
+        .see-all { color: #3949ab; text-decoration: none; font-size: 0.85rem; }
+        .transactions-card {
+            background: white;
+            margin: 0 20px 20px;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .transaction-item:last-child { border-bottom: none; }
+        .tx-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .tx-icon.credit { background: #e8f5e9; color: #388e3c; }
+        .tx-icon.debit { background: #ffebee; color: #d32f2f; }
+        .tx-icon.gift { background: #fff3e0; color: #f57c00; }
+        .tx-details { flex: 1; }
+        .tx-title { font-weight: 600; color: #333; margin-bottom: 4px; font-size: 0.95rem; }
+        .tx-subtitle { color: #888; font-size: 0.8rem; }
+        .tx-amount { text-align: right; }
+        .tx-amount .amount { font-weight: 700; font-size: 1rem; }
+        .tx-amount .amount.credit { color: #388e3c; }
+        .tx-amount .amount.debit { color: #d32f2f; }
+        .tx-amount .time { color: #aaa; font-size: 0.75rem; margin-top: 4px; }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0 20px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+            border-top: 1px solid #f0f0f0;
+            z-index: 100;
+        }
+        .nav-item {
+            text-align: center;
+            text-decoration: none;
+            color: #888;
+            font-size: 0.7rem;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        .nav-item i { font-size: 1.3rem; display: block; margin-bottom: 4px; }
+        .nav-item.active { color: #3949ab; background: #e8eaf6; }
+        .notification-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+            border-left: 4px solid #00c853;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .notification-popup.show { transform: translateX(0); }
+        .notification-popup.error { border-left-color: #ff1744; }
+        .notif-icon { font-size: 1.5rem; color: #00c853; }
+        .notification-popup.error .notif-icon { color: #ff1744; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <div class="header-top">
+                <div class="greeting">
+                    <h2 id="greetingText">Good morning,</h2>
+                    <p id="userName">Loading...</p>
+                </div>
+                <div class="header-actions">
+                    <a href="#" class="icon-btn" onclick="return false;">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge" id="notifBadge" style="display: none;">0</span>
+                    </a>
+                    <a href="/profile" class="icon-btn"><i class="fas fa-user"></i></a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="balance-section">
+            <div class="balance-card">
+                <div class="card-header">
+                    <span class="card-label">Total Balance</span>
+                    <button class="hide-btn" onclick="toggleBalance()">
+                        <i class="fas fa-eye" id="eyeIcon"></i> <span id="hideText">Hide</span>
+                    </button>
+                </div>
+                <div class="balance-amount" id="balanceDisplay">$0.00</div>
+                <div class="card-footer">
+                    <div class="account-info">
+                        <div id="accountNumber">...</div>
+                        <small>Savings Account</small>
+                    </div>
+                    <button class="copy-btn" onclick="copyAccount()" title="Copy"><i class="fas fa-copy"></i></button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="quick-actions">
+            <a href="/transfer" class="action-item">
+                <div class="action-icon send"><i class="fas fa-paper-plane"></i></div>
+                <span class="action-label">Send</span>
+            </a>
+            <a href="#" class="action-item" onclick="showReceive(); return false;">
+                <div class="action-icon receive"><i class="fas fa-download"></i></div>
+                <span class="action-label">Receive</span>
+            </a>
+            <a href="/history" class="action-item">
+                <div class="action-icon history"><i class="fas fa-clock"></i></div>
+                <span class="action-label">History</span>
+            </a>
+            <a href="/support" class="action-item">
+                <div class="action-icon support"><i class="fas fa-headset"></i></div>
+                <span class="action-label">Support</span>
+            </a>
+        </div>
+        
+        <div class="promo-banner">
+            <div class="promo-icon"><i class="fas fa-gift"></i></div>
+            <div>
+                <h4 style="margin-bottom: 5px;">Refer & Earn</h4>
+                <p style="opacity: 0.9; font-size: 0.9rem;">Get $50 for each friend!</p>
+            </div>
+            <button class="promo-btn">Invite</button>
+        </div>
+        
+        <div class="section-title">
+            <h3><i class="fas fa-list-ul" style="color: #3949ab; margin-right: 8px;"></i>Recent</h3>
+            <a href="/history" class="see-all">See All <i class="fas fa-chevron-right"></i></a>
+        </div>
+        
+        <div class="transactions-card" id="transactionsList">
+            <p style="text-align: center; color: #888; padding: 20px;">No transactions</p>
+        </div>
+    </div>
+    
+    <nav class="bottom-nav">
+        <a href="/dashboard" class="nav-item active"><i class="fas fa-home"></i>Home</a>
+        <a href="/transfer" class="nav-item"><i class="fas fa-exchange-alt"></i>Transfer</a>
+        <a href="/history" class="nav-item"><i class="fas fa-chart-bar"></i>History</a>
+        <a href="/support" class="nav-item"><i class="fas fa-comment-dots"></i>Chat</a>
+    </nav>
+    
+    <div class="notification-popup" id="notification">
+        <i class="fas fa-check-circle notif-icon"></i>
+        <div>
+            <div style="font-weight: 600; color: #333;" id="notifTitle">Success</div>
+            <div style="color: #666; font-size: 0.9rem;" id="notifMessage">Message</div>
+        </div>
+    </div>
+    
+    <div id="receiveModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 90%;">
+            <div style="width: 80px; height: 80px; background: #e8eaf6; border-radius: 20px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; color: #3949ab; font-size: 2rem;">
+                <i class="fas fa-qrcode"></i>
+            </div>
+            <h3 style="margin-bottom: 10px;">Receive Money</h3>
+            <div style="background: #f5f5f5; padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+                <p style="font-size: 0.8rem; color: #888; margin-bottom: 8px;">ACCOUNT NUMBER</p>
+                <p style="font-size: 1.2rem; font-weight: bold; color: #333; font-family: monospace;" id="modalAccount">...</p>
+            </div>
+            <button onclick="document.getElementById('receiveModal').style.display='none'" style="background: #3949ab; padding: 15px; border-radius: 12px; border: none; color: white; font-weight: 600; width: 100%;">Close</button>
+        </div>
+    </div>
+    
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

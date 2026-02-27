@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create PIN - Lexo Banking</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .pin-display {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        .pin-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: all 0.3s ease;
+        }
+        .pin-dot.filled {
+            background: var(--primary);
+        }
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        .key {
+            padding: 20px;
+            font-size: 1.5rem;
+            border: none;
+            background: var(--card-bg);
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+        .key:hover {
+            background: var(--primary);
+            color: white;
+        }
+        .key:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-card">
+            <div class="form-header">
+                <i class="fas fa-shield-alt" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i>
+                <h1>Create PIN</h1>
+                <p style="color: var(--text-light);">Secure your account with a 4-digit PIN</p>
+            </div>
+            
+            <div class="pin-display" id="pinDisplay">
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+            </div>
+            
+            <input type="hidden" id="pinInput" maxlength="4">
+            
+            <div class="keypad">
+                <button class="key" onclick="addDigit('1')">1</button>
+                <button class="key" onclick="addDigit('2')">2</button>
+                <button class="key" onclick="addDigit('3')">3</button>
+                <button class="key" onclick="addDigit('4')">4</button>
+                <button class="key" onclick="addDigit('5')">5</button>
+                <button class="key" onclick="addDigit('6')">6</button>
+                <button class="key" onclick="addDigit('7')">7</button>
+                <button class="key" onclick="addDigit('8')">8</button>
+                <button class="key" onclick="addDigit('9')">9</button>
+                <button class="key" style="background: var(--danger); color: white;" onclick="clearPin()">
+                    <i class="fas fa-times"></i>
+                </button>
+                <button class="key" onclick="addDigit('0')">0</button>
+                <button class="key" style="background: var(--secondary); color: white;" onclick="submitPin()">
+                    <i class="fas fa-check"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        <div class="notification-title" id="notifTitle">Error</div>
+        <div id="notifMessage">Something went wrong</div>
+    </div>
+    
+    <script>
+        let pin = '';
+        
+        function addDigit(digit) {
+            if (pin.length < 4) {
+                pin += digit;
+                updateDisplay();
+            }
+        }
+        
+        function clearPin() {
+            pin = '';
+            updateDisplay();
+        }
+        
+        function updateDisplay() {
+            const dots = document.querySelectorAll('.pin-dot');
+            dots.forEach((dot, index) => {
+                if (index < pin.length) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            });
+        }
+        
+        async function submitPin() {
+            if (pin.length !== 4) {
+                showNotification('Error', 'Please enter 4 digits', true);
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/create-pin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pin })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.href = '/dashboard';
+                } else {
+                    showNotification('Error', data.message, true);
+                }
+            } catch (error) {
+                showNotification('Error', 'Network error. Please try again.', true);
+            }
+        }
+        
+        function showNotification(title, message, isError) {
+            const notif = document.getElementById('notification');
+            document.getElementById('notifTitle').textContent = title;
+            document.getElementById('notifMessage').textContent = message;
+            if (isError) notif.classList.add('error');
+            notif.classList.add('show');
+            setTimeout(() => {
+                notif.classList.remove('show');
+                notif.classList.remove('error');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

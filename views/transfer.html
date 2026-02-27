@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transfer - Lexo Banking</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <div class="user-info">
+                <h2><i class="fas fa-paper-plane"></i> Send Money</h2>
+            </div>
+            <a href="/dashboard" style="color: white; font-size: 1.5rem;">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+        </div>
+        
+        <div id="lockedBanner" class="locked-banner" style="display: none;">
+            <i class="fas fa-lock"></i> Your account is locked. Cannot make transfers.
+        </div>
+        
+        <div class="transfer-form" id="transferForm">
+            <h2>Transfer Details</h2>
+            <p style="color: var(--text-light); margin-bottom: 20px; font-size: 0.9rem;">
+                <i class="fas fa-info-circle"></i> You can send to any bank account (Lexo or external)
+            </p>
+            
+            <div class="form-group">
+                <label>Bank Name</label>
+                <input type="text" id="bankName" placeholder="e.g., Chase Bank, Lexo Bank, etc." value="Lexo Bank">
+            </div>
+            
+            <div class="form-group">
+                <label>Recipient Account Number</label>
+                <input type="text" id="recipientAccount" placeholder="Enter any account number">
+            </div>
+            
+            <div class="form-group">
+                <label>Recipient Full Name</label>
+                <input type="text" id="recipientName" placeholder="Enter recipient full name">
+            </div>
+            
+            <div class="form-group">
+                <label>Amount ($)</label>
+                <input type="number" id="amount" placeholder="0.00" step="0.01" min="0.01">
+            </div>
+            
+            <button onclick="showPinModal()" class="btn-full" style="margin-top: 10px;">
+                Continue <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+        
+        <div id="receiptSection" style="display: none;">
+            <div class="receipt">
+                <i class="fas fa-check-circle" style="font-size: 4rem; color: var(--secondary); margin-bottom: 20px;"></i>
+                <h3>Transfer Successful!</h3>
+                <div id="externalWarning" style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 8px; margin-bottom: 15px; display: none;">
+                    <i class="fas fa-exclamation-triangle"></i> External bank transfer completed
+                </div>
+                <div class="receipt-row">
+                    <span>Receipt ID</span>
+                    <span id="receiptId">...</span>
+                </div>
+                <div class="receipt-row">
+                    <span>Date</span>
+                    <span id="receiptDate">...</span>
+                </div>
+                <div class="receipt-row">
+                    <span>Bank</span>
+                    <span id="receiptBank">...</span>
+                </div>
+                <div class="receipt-row">
+                    <span>Recipient</span>
+                    <span id="receiptRecipient">...</span>
+                </div>
+                <div class="receipt-row">
+                    <span>Account</span>
+                    <span id="receiptAccount">...</span>
+                </div>
+                <div class="receipt-row">
+                    <span>Amount</span>
+                    <span id="receiptAmount">...</span>
+                </div>
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 2px dashed var(--border);">
+                    <button onclick="window.location.href='/dashboard'" class="btn-full">
+                        Back to Dashboard
+                    </button>
+                    <button onclick="newTransfer()" class="btn-full" style="background: var(--secondary); margin-top: 10px;">
+                        New Transfer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="pinModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 300px; width: 90%;">
+            <i class="fas fa-lock" style="font-size: 3rem; color: var(--primary); margin-bottom: 20px;"></i>
+            <h3 style="margin-bottom: 20px;">Enter PIN</h3>
+            <input type="password" id="pinInput" maxlength="4" placeholder="****" style="width: 100%; padding: 15px; font-size: 1.5rem; text-align: center; letter-spacing: 10px; border: 2px solid var(--border); border-radius: 10px; margin-bottom: 20px;">
+            <button onclick="submitTransfer()" class="btn-full">Confirm Transfer</button>
+            <button onclick="closePinModal()" style="background: none; border: none; color: var(--text-light); margin-top: 15px; cursor: pointer;">Cancel</button>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        <div class="notification-title" id="notifTitle">Error</div>
+        <div id="notifMessage">Something went wrong</div>
+    </div>
+    
+    <script src="/js/transfer.js"></script>
+</body>
+</html>

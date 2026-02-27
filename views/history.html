@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History - Lexo Banking</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <div class="user-info">
+                <h2><i class="fas fa-history"></i> Transaction History</h2>
+            </div>
+            <a href="/dashboard" style="color: white; font-size: 1.5rem;">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+        </div>
+        
+        <div id="historyList" style="margin: 20px; padding-bottom: 80px;">
+            <p style="text-align: center; color: var(--text-light); padding: 40px;">Loading transactions...</p>
+        </div>
+    </div>
+    
+    <nav class="bottom-nav">
+        <a href="/dashboard" class="nav-item">
+            <i class="fas fa-home"></i>
+            Home
+        </a>
+        <a href="/transfer" class="nav-item">
+            <i class="fas fa-exchange-alt"></i>
+            Transfer
+        </a>
+        <a href="/history" class="nav-item active">
+            <i class="fas fa-list"></i>
+            History
+        </a>
+        <a href="/support" class="nav-item">
+            <i class="fas fa-comments"></i>
+            Support
+        </a>
+    </nav>
+    
+    <script>
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history');
+                const data = await response.json();
+                
+                const list = document.getElementById('historyList');
+                
+                if (!data.success || data.history.length === 0) {
+                    list.innerHTML = '<p style="text-align: center; color: var(--text-light); padding: 40px;">No transactions yet</p>';
+                    return;
+                }
+                
+                list.innerHTML = '';
+                data.history.reverse().forEach(tx => {
+                    const isSender = tx.senderId === data.user?.id || tx.type === 'transfer';
+                    const isCredit = tx.recipientId === data.user?.id && tx.senderId !== 'admin';
+                    const isAdminCredit = tx.senderId === 'admin';
+                    
+                    let icon, color, title, amount;
+                    
+                    if (isAdminCredit) {
+                        icon = 'fa-gift';
+                        color = 'var(--secondary)';
+                        title = 'Received from ' + tx.senderName;
+                        amount = '+$' + tx.amount.toFixed(2);
+                    } else if (isCredit) {
+                        icon = 'fa-arrow-down';
+                        color = 'var(--secondary)';
+                        title = 'Received from ' + tx.senderName;
+                        amount = '+$' + tx.amount.toFixed(2);
+                    } else {
+                        icon = 'fa-arrow-up';
+                        color = 'var(--danger)';
+                        title = 'Sent to ' + tx.recipientName;
+                        amount = '-$' + tx.amount.toFixed(2);
+                    }
+                    
+                    const item = document.createElement('div');
+                    item.style.cssText = 'background: white; padding: 20px; margin-bottom: 15px; border-radius: 16px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 15px;';
+                    item.innerHTML = `
+                        <div style="width: 50px; height: 50px; background: ${color}20; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: ${color}; font-size: 1.2rem;">
+                            <i class="fas ${icon}"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <h4 style="margin-bottom: 5px; color: var(--text);">${title}</h4>
+                            <p style="font-size: 0.8rem; color: var(--text-light);">${new Date(tx.date).toLocaleString()}</p>
+                        </div>
+                        <div style="font-weight: bold; color: ${color}; font-size: 1.1rem;">
+                            ${amount}
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+        
+        loadHistory();
+    </script>
+</body>
+</html>

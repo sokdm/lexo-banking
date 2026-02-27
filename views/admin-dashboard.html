@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Lexo Banking</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard">
+        <div class="admin-header">
+            <div class="user-info">
+                <h2><i class="fas fa-cog"></i> Admin Panel</h2>
+            </div>
+            <button onclick="logout()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+        
+        <div style="margin: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
+                <div style="background: white; padding: 20px; border-radius: 16px; text-align: center; box-shadow: var(--shadow);">
+                    <i class="fas fa-users" style="font-size: 2rem; color: var(--primary); margin-bottom: 10px;"></i>
+                    <h3 id="totalUsers">0</h3>
+                    <p style="color: var(--text-light); font-size: 0.9rem;">Total Users</p>
+                </div>
+                <div style="background: white; padding: 20px; border-radius: 16px; text-align: center; box-shadow: var(--shadow);">
+                    <i class="fas fa-lock" style="font-size: 2rem; color: var(--danger); margin-bottom: 10px;"></i>
+                    <h3 id="lockedUsers">0</h3>
+                    <p style="color: var(--text-light); font-size: 0.9rem;">Locked Accounts</p>
+                </div>
+            </div>
+            
+            <h3 style="margin-bottom: 15px; color: var(--primary);">
+                <i class="fas fa-users"></i> All Users
+            </h3>
+            <div id="userList" class="user-list">
+                <p style="text-align: center; color: var(--text-light);">Loading users...</p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="sendMoneyModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px;">
+            <h3 style="margin-bottom: 20px; color: var(--primary);">
+                <i class="fas fa-gift"></i> Send Money
+            </h3>
+            <input type="hidden" id="sendMoneyUserId">
+            <div class="form-group">
+                <label>Sender Name</label>
+                <input type="text" id="senderName" value="Williams">
+            </div>
+            <div class="form-group">
+                <label>Amount ($)</label>
+                <input type="number" id="sendAmount" placeholder="0.00" step="0.01">
+            </div>
+            <button onclick="confirmSendMoney()" class="btn-full" style="background: var(--secondary);">
+                Send Money
+            </button>
+            <button onclick="closeSendMoneyModal()" style="width: 100%; background: none; border: none; color: var(--text-light); margin-top: 15px; cursor: pointer;">
+                Cancel
+            </button>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        <div class="notification-title" id="notifTitle">Notification</div>
+        <div id="notifMessage">Message</div>
+    </div>
+    
+    <script src="/js/admin.js"></script>
+</body>
+</html>

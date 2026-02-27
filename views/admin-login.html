@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Lexo Banking</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-card">
+            <div class="form-header">
+                <i class="fas fa-user-shield" style="font-size: 3rem; color: var(--danger); margin-bottom: 15px;"></i>
+                <h1>Admin Login</h1>
+                <p style="color: var(--text-light);">Lexo Banking Administration</p>
+            </div>
+            
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="email" placeholder="admin@lexo.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="password" placeholder="Enter admin password" required>
+                </div>
+                
+                <button type="submit" class="btn-full" style="background: var(--danger);">
+                    <i class="fas fa-sign-in-alt"></i> Login as Admin
+                </button>
+            </form>
+            
+            <div class="link">
+                <a href="/login" style="color: var(--text-light);">
+                    <i class="fas fa-arrow-left"></i> Back to User Login
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        <div class="notification-title" id="notifTitle">Error</div>
+        <div id="notifMessage">Something went wrong</div>
+    </div>
+    
+    <script>
+        document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.href = '/admin/dashboard';
+                } else {
+                    showNotification('Error', data.message, true);
+                }
+            } catch (error) {
+                showNotification('Error', 'Network error', true);
+            }
+        });
+        
+        function showNotification(title, message, isError) {
+            const notif = document.getElementById('notification');
+            document.getElementById('notifTitle').textContent = title;
+            document.getElementById('notifMessage').textContent = message;
+            if (isError) notif.classList.add('error');
+            notif.classList.add('show');
+            setTimeout(() => notif.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>

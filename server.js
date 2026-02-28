@@ -49,7 +49,7 @@ app.use(session({
     saveUninitialized: true,
     cookie: { 
         secure: false,
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        maxAge: 24 * 60 * 60 * 1000
     }
 }));
 
@@ -138,6 +138,11 @@ app.get('/history', (req, res) => {
 app.get('/support', (req, res) => {
     if (!req.session.user) return res.redirect('/login');
     res.sendFile(path.join(__dirname, 'views', 'support.html'));
+});
+
+app.get('/cards', (req, res) => {
+    if (!req.session.user) return res.redirect('/login');
+    res.sendFile(path.join(__dirname, 'views', 'cards.html'));
 });
 
 // ADMIN ROUTES

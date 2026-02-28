@@ -60,11 +60,7 @@
             border-radius: 10px;
             font-weight: bold;
         }
-        .balance-section {
-            margin: -30px 20px 20px;
-            position: relative;
-            z-index: 2;
-        }
+        .balance-section { margin: -30px 20px 20px; position: relative; z-index: 2; }
         .balance-card {
             background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
             border-radius: 20px;
@@ -128,8 +124,8 @@
         }
         .quick-actions {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
             margin: 20px;
             background: white;
             padding: 20px;
@@ -145,19 +141,20 @@
             color: #333;
         }
         .action-icon {
-            width: 55px;
-            height: 55px;
-            border-radius: 18px;
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.4rem;
+            font-size: 1.3rem;
         }
         .action-icon.send { background: #e3f2fd; color: #1976d2; }
         .action-icon.receive { background: #e8f5e9; color: #388e3c; }
         .action-icon.history { background: #fff3e0; color: #f57c00; }
         .action-icon.support { background: #fce4ec; color: #c2185b; }
-        .action-label { font-size: 0.75rem; font-weight: 500; }
+        .action-icon.cards { background: #e8eaf6; color: #3949ab; }
+        .action-label { font-size: 0.7rem; font-weight: 500; }
         .promo-banner {
             margin: 0 20px 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -331,6 +328,10 @@
             <a href="/support" class="action-item">
                 <div class="action-icon support"><i class="fas fa-headset"></i></div>
                 <span class="action-label">Support</span>
+            </a>
+            <a href="/cards" class="action-item">
+                <div class="action-icon cards"><i class="fas fa-credit-card"></i></div>
+                <span class="action-label">Cards</span>
             </a>
         </div>
         

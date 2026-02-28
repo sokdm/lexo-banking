@@ -10,6 +10,11 @@ function setGreeting() {
     document.getElementById('greetingText').textContent = greeting;
 }
 
+// Format number with commas
+function formatMoney(amount) {
+    return '$' + amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+}
+
 async function loadUserData() {
     try {
         const response = await fetch('/api/user');
@@ -18,7 +23,7 @@ async function loadUserData() {
         if (data.success) {
             currentUser = data.user;
             document.getElementById('userName').textContent = data.user.fullName;
-            document.getElementById('balanceDisplay').textContent = '$' + data.user.balance.toFixed(2);
+            document.getElementById('balanceDisplay').textContent = formatMoney(data.user.balance);
             document.getElementById('accountNumber').textContent = data.user.accountNumber;
             document.getElementById('modalAccount').textContent = data.user.accountNumber;
             
@@ -80,7 +85,7 @@ async function loadTransactions() {
                     '<div class="tx-subtitle">' + (tx.bankName || 'Lexo Bank') + '</div>' +
                 '</div>' +
                 '<div class="tx-amount">' +
-                    '<div class="amount ' + amountClass + '">' + amountPrefix + '$' + tx.amount.toFixed(2) + '</div>' +
+                    '<div class="amount ' + amountClass + '">' + amountPrefix + formatMoney(tx.amount) + '</div>' +
                     '<div class="time">' + new Date(tx.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '</div>' +
                 '</div>';
             list.appendChild(item);
@@ -96,7 +101,7 @@ function toggleBalance() {
     const hideText = document.getElementById('hideText');
     
     if (balanceHidden) {
-        display.textContent = '$' + currentUser.balance.toFixed(2);
+        display.textContent = formatMoney(currentUser.balance);
         eyeIcon.className = 'fas fa-eye';
         hideText.textContent = 'Hide';
     } else {
